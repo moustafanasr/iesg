@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-label="Abstract ESG pattern">
+<rect width="1200" height="700" fill="#F4F6F9"/>
+<circle cx="1020" cy="70" r="300" fill="#27BCE1" opacity=".12"/>
+<circle cx="1100" cy="120" r="210" fill="#40AD49" opacity=".14"/>
+<path d="M0 620L410 250 620 460 840 210 1200 520V700H0Z" fill="#418D41" opacity=".09"/>
+<path d="M60 120C260 40 280 300 460 230S720 40 880 170" fill="none" stroke="#418D41" stroke-width="7" stroke-linecap="round" opacity=".35"/>
+</svg>
