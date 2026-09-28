@@ -1,6 +1,6 @@
 (()=>{
   'use strict';
-  window.IESGMotion={enabled:true,smoothScroll:true,pageWipe:true,intensity:'cinematic',mobileHeavy:false};
+  window.IESGMotion={enabled:true,smoothScroll:true,pageWipe:false,intensity:'cinematic',mobileHeavy:false};
 
   const btn=document.querySelector('[data-iesg-menu-toggle]');
   const nav=document.querySelector('[data-iesg-nav]');
