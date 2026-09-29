@@ -147,3 +147,85 @@
   addEventListener('load',()=>{setHeaderVar(); if(scrollbar) scrollbar.update(); ScrollTrigger.refresh(true);},{once:true});
   addEventListener('resize',()=>{setHeaderVar(); if(scrollbar) scrollbar.update(); ScrollTrigger.refresh();},{passive:true});
 })();
+
+
+/* v2.0: Section 2 interactions + richer HOME motion. No layout restructuring below Section 2. */
+(()=>{
+  'use strict';
+  if(!window.gsap || !window.ScrollTrigger) return;
+  const gsap=window.gsap, ScrollTrigger=window.ScrollTrigger;
+  gsap.registerPlugin(ScrollTrigger);
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced) return;
+
+  // Section 2: drag + scroll-linked horizontal movement on desktop.
+  const section=document.querySelector('[data-sdg-showcase]');
+  const viewport=document.querySelector('[data-sdg-viewport]');
+  const track=document.querySelector('[data-sdg-track]');
+  const progress=document.querySelector('[data-sdg-progress]');
+  const cards=track ? [...track.querySelectorAll('[data-sdg-card]')] : [];
+
+  if(section && viewport && track && cards.length){
+    const desktop=()=>innerWidth>820;
+    const maxX=()=>Math.max(0,track.scrollWidth-innerWidth);
+    let tween=null;
+
+    const build=()=>{
+      if(tween){tween.scrollTrigger&&tween.scrollTrigger.kill();tween.kill();tween=null;}
+      gsap.set(track,{x:0});
+      if(!desktop()) return;
+      const dist=Math.max(0,track.scrollWidth-innerWidth+80);
+      if(dist<30) return;
+      tween=gsap.to(track,{x:-dist,ease:'none',scrollTrigger:{
+        trigger:section,start:'top 78%',end:()=>`+=${Math.max(700,dist*.82)}`,scrub:1.05,invalidateOnRefresh:true,
+        onUpdate:self=>{
+          progress&&gsap.set(progress,{scaleX:.08+self.progress*.92});
+          const idx=Math.min(cards.length-1,Math.round(self.progress*(cards.length-1)));
+          cards.forEach((c,i)=>c.classList.toggle('is-active',i===idx));
+        }
+      }});
+    };
+    build();
+    addEventListener('resize',()=>{clearTimeout(window.__iesgSdgResize);window.__iesgSdgResize=setTimeout(()=>{build();ScrollTrigger.refresh();},180)},{passive:true});
+
+    // Mouse/touch drag on desktop without replacing scroll behavior.
+    let down=false,startX=0,startPos=0,currentX=0;
+    const setX=x=>{currentX=Math.max(-maxX(),Math.min(0,x));gsap.to(track,{x:currentX,duration:.35,ease:'power3.out',overwrite:true});};
+    viewport.addEventListener('pointerdown',e=>{if(!desktop())return;down=true;startX=e.clientX;startPos=gsap.getProperty(track,'x')||0;viewport.setPointerCapture?.(e.pointerId);});
+    viewport.addEventListener('pointermove',e=>{if(!down||!desktop())return;setX(startPos+(e.clientX-startX));});
+    const stop=()=>{down=false}; viewport.addEventListener('pointerup',stop); viewport.addEventListener('pointercancel',stop); viewport.addEventListener('pointerleave',stop);
+
+    // Card entrance and image movement.
+    gsap.fromTo(cards,{y:34,scale:.96,rotationY:3},{y:0,scale:1,rotationY:0,duration:.85,stagger:.06,ease:'power3.out',scrollTrigger:{trigger:section,start:'top 88%',once:true,immediateRender:false}});
+    cards.forEach((card,i)=>{
+      const img=card.querySelector('img');
+      if(img) gsap.fromTo(img,{scale:1.08},{scale:1,duration:1.1,delay:i*.025,ease:'power2.out',scrollTrigger:{trigger:section,start:'top 90%',once:true,immediateRender:false}});
+    });
+  }
+
+  // Stronger motion across existing HOME elements only; structures are untouched.
+  if(document.body.classList.contains('iesg-home-v2')){
+    gsap.utils.toArray('.iesg-section-title').forEach(title=>{
+      const eyebrow=title.querySelector('.iesg-eyebrow');
+      const h2=title.querySelector('h2');
+      const p=title.querySelector('p:not(.iesg-eyebrow)');
+      const tl=gsap.timeline({scrollTrigger:{trigger:title,start:'top 88%',once:true}});
+      if(eyebrow) tl.fromTo(eyebrow,{x:-20},{x:0,duration:.45,ease:'power2.out'});
+      if(h2) tl.fromTo(h2,{y:28,scale:.985},{y:0,scale:1,duration:.72,ease:'power3.out'},'-=.2');
+      if(p) tl.fromTo(p,{y:16},{y:0,duration:.55,ease:'power2.out'},'-=.35');
+    });
+
+    gsap.utils.toArray('.iesg-about-media,.iesg-why-intro,.iesg-way-orbit,.iesg-contact-map').forEach((el,i)=>{
+      gsap.fromTo(el,{y:32,rotationY:i%2?2.5:-2.5,scale:.985},{y:0,rotationY:0,scale:1,duration:.9,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 90%',once:true,immediateRender:false}});
+    });
+
+    gsap.utils.toArray('.iesg-core-grid .iesg-card,.iesg-why-cards .iesg-card,.iesg-service-grid .iesg-service-card,.iesg-post-grid .iesg-post-card').forEach((el,i)=>{
+      gsap.fromTo(el,{y:28+(i%3)*5,rotationX:2.2,scale:.985},{y:0,rotationX:0,scale:1,duration:.75,delay:(i%3)*.045,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 92%',once:true,immediateRender:false}});
+    });
+
+    // Subtle image parallax for existing home imagery.
+    gsap.utils.toArray('.iesg-about-media img,.iesg-why-card-media img,.iesg-service-card__media img,.iesg-post-card__image img').forEach(img=>{
+      gsap.fromTo(img,{yPercent:-2},{yPercent:2,ease:'none',scrollTrigger:{trigger:img,start:'top bottom',end:'bottom top',scrub:.9}});
+    });
+  }
+})();
