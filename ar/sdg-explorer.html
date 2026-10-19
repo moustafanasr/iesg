@@ -1,7 +1,11 @@
-<!doctype html><html lang="ar" dir="rtl" data-theme="dark"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="robots" content="noindex,nofollow">
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Explore the 17 Sustainable Development Goals | iESG Advisory</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Explore Egypt and MENA performance across all 17 Sustainable Development Goals.">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap">
 <style>
@@ -168,7 +172,26 @@ td.code{font-weight:600;white-space:nowrap}
 </style>
 
 
-</head><body><div class="wrap" id="app">
+
+<style>
+:root{color-scheme:dark!important}
+html{background:#0B1322!important}
+body{background:#0B1322!important;min-height:100%;overflow-x:hidden}
+body::-webkit-scrollbar{width:10px}body::-webkit-scrollbar-track{background:#0B1322}body::-webkit-scrollbar-thumb{background:#23324b;border-radius:99px}
+.top{padding-top:2px}
+.top h1{font-size:clamp(25px,3vw,38px)}
+.panel{box-shadow:0 22px 60px rgba(0,0,0,.16)}
+.goal-btn{transition:border-color .2s ease,background .2s ease,transform .2s ease}
+.goal-btn:hover{transform:translateX(2px)}
+body[dir="rtl"] .goal-btn:hover{transform:translateX(-2px)}
+@media(max-width:760px){body{padding-block:18px 32px}.top{margin-bottom:16px}.rail{padding-bottom:10px}.panel{margin-top:4px}}
+</style>
+
+<style>.embed-context-note{max-width:1180px;margin:0 auto 12px;color:#7E8BA0;font:600 10px/1.2 Poppins,sans-serif;letter-spacing:.12em;text-transform:uppercase}</style>
+</head>
+<body>
+
+<div class="wrap" id="app">
   <header class="top">
     <div>
       <div class="eyebrow" data-i18n="eyebrow">Global goals</div>
@@ -182,7 +205,7 @@ td.code{font-weight:600;white-space:nowrap}
           <button type="button" id="lang-en" aria-pressed="true">EN</button>
           <button type="button" id="lang-ar" aria-pressed="false">AR</button>
         </div>
-        <span class="tag" data-i18n="proto">Egypt & MENA explorer</span>
+        <span class="tag" data-i18n="proto">Egypt & MENA data explorer</span>
       </div>
     </div>
   </header>
@@ -201,7 +224,7 @@ td.code{font-weight:600;white-space:nowrap}
   const DATA = JSON.parse(document.getElementById('sdg-data').textContent);
   const GOALS = DATA.goals, META = DATA.meta;
   const I18N = {
-    en:{eyebrow:'Global goals',h1:'Explore the 17 Sustainable Development Goals.',sub:'Select a goal to see where Egypt stands, how it compares in the region, and the evidence behind it.',proto:'Egypt & MENA explorer',
+    en:{eyebrow:'Global goals',h1:'Explore the 17 Sustainable Development Goals.',sub:'Select a goal to see where Egypt stands, how it compares in the region, and the evidence behind it.',proto:'Egypt & MENA data explorer',
         where:'Where Egypt stands',global:'Global · SDR 2026',regional:'Arab region · Arab Index 2026',panel:'Peer panel · this goal',of:'of',score:'score',regavg:'regional average',top7:'Among 7 of 22 Arab states above the two-thirds threshold',
         rankNA:'Rank: in report chart (to fill)',kpis:'Key figures',kpisrc:'UN SDG Indicators Database',from:'from',in:'in',peer:'Egypt vs regional peers',peersrc:'SDR 2026 goal score, 0–100',
         leaders:'Leads this goal in the region:',gleaders:'Global index leaders:',obs:'Key observations',draft:'Draft · for review',evidence:'Full evidence',evhint:'Targets · Egypt performance · MENA comparison · Statistics & sources',
@@ -209,7 +232,7 @@ td.code{font-weight:600;white-space:nowrap}
         menafoot:'',stats:'Statistics & indicators',ind:'Indicator',latest:'Latest',baseline:'Baseline',nature:'Data nature',bd:'Egypt breakdowns, same year',group:'Group',value:'Value',unit:'Unit',sources:'Sources & technical notes',data:'Original data',
         na:'Not available',prev:'← Previous goal',next:'Next goal →',asof:'Data as of',status:'Status',
         foot:'Evidence layer: UN Global SDG Indicators Database, retrieved 13 Oct 2026 (as in the SDG_17_Egypt_MENA reference). Position layer: SDSN Sustainable Development Report 2026 (23 Jun 2026, 169 countries) and the Arab Region SDG Index & Dashboards 2026 (MBRSG/SDSN). Index scores and UN indicator values are never shown in the same table.'},
-    ar:{eyebrow:'الأهداف العالمية',h1:'استكشف أهداف التنمية المستدامة السبعة عشر.',sub:'اختر هدفًا لترى موقع مصر، ومقارنتها إقليميًا، والأدلة الداعمة.',proto:'مستكشف مصر والمنطقة',
+    ar:{eyebrow:'الأهداف العالمية',h1:'استكشف أهداف التنمية المستدامة السبعة عشر.',sub:'اختر هدفًا لترى موقع مصر، ومقارنتها إقليميًا، والأدلة الداعمة.',proto:'مستكشف بيانات مصر والمنطقة',
         where:'أين تقف مصر',global:'عالميًا · تقرير التنمية المستدامة 2026',regional:'المنطقة العربية · المؤشر العربي 2026',panel:'مجموعة المقارنة · هذا الهدف',of:'من',score:'الدرجة',regavg:'متوسط المنطقة',top7:'ضمن 7 من 22 دولة عربية تجاوزت عتبة الثلثين',
         rankNA:'الترتيب: في رسم التقرير (يُستكمل)',kpis:'الأرقام الرئيسية',kpisrc:'قاعدة بيانات مؤشرات التنمية المستدامة – الأمم المتحدة',from:'من',in:'في',peer:'مصر مقابل دول المنطقة',peersrc:'درجة الهدف في تقرير 2026، من 0 إلى 100',
         leaders:'تتصدر هذا الهدف إقليميًا:',gleaders:'المتصدرون عالميًا:',obs:'ملاحظات رئيسية',draft:'مسودة · للمراجعة',evidence:'الأدلة الكاملة',evhint:'الغايات · أداء مصر · المقارنة الإقليمية · الإحصاءات والمصادر',
@@ -332,4 +355,7 @@ td.code{font-weight:600;white-space:nowrap}
   applyLang();
 })();
 </script>
-</body></html>
+
+
+</body>
+</html>

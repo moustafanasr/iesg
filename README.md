@@ -19,3 +19,7 @@ Open http://localhost:8080
 
 ## Preview status
 `noindex,nofollow` remains enabled because this is a client-preview build.
+
+
+## v3.2 SDG update
+The full content and interaction from the supplied `sdg-explorer-prototype(1).html` is now embedded directly inside the “Explore the 17 Sustainable Development Goals” section on Home and Knowledge Hub (EN/AR). The section contains the complete 17-goal dataset, position cards, KPIs, regional peer chart, observations, targets, Egypt performance, MENA comparison, statistics and technical sources.

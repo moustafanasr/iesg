@@ -126,3 +126,16 @@
     gsap.utils.toArray('.sector-card').forEach((el,i)=>gsap.from(el,{opacity:0,y:28,duration:.55,delay:(i%3)*.06,ease:'power2.out',scrollTrigger:{trigger:el,start:'top 90%',once:true}}));
   }
 })();
+
+
+// v3.2 — resize the embedded full SDG explorer as its selected goal/evidence changes.
+window.addEventListener('message', function(event){
+  var d=event.data||{};
+  if(d.type!=='iesg-sdg-height') return;
+  document.querySelectorAll('[data-sdg-full-frame]').forEach(function(frame){
+    if(frame.contentWindow===event.source){
+      var h=Math.max(980,Math.min(Number(d.height)||1350,7000));
+      frame.style.height=h+'px';
+    }
+  });
+});
