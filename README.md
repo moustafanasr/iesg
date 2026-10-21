@@ -23,3 +23,10 @@ Open http://localhost:8080
 
 ## v3.3 SDG update
 The full content and interaction from the supplied `sdg-explorer-prototype(1).html` is now embedded directly inside the “Explore the 17 Sustainable Development Goals” section on Home and Knowledge Hub (EN/AR). The section contains the complete 17-goal dataset, position cards, KPIs, regional peer chart, observations, targets, Egypt performance, MENA comparison, statistics and technical sources.
+
+
+## v3.4 changes
+- Header hierarchy now follows the requested Home / Services / CBAM Toolkit / iESG Nexus dropdown / Platform / About Us dropdown / Contact structure, with a separate mobile navigation.
+- The full 17-SDG explorer is removed from Home and remains in Knowledge Hub only.
+- Home now uses the 10 supplied goal images from goals.rar as a continuously moving slider.
+- Selecting a goal image deep-links to the matching goal inside the Knowledge Hub explorer.
