@@ -30,3 +30,17 @@ The full content and interaction from the supplied `sdg-explorer-prototype(1).ht
 - The full 17-SDG explorer is removed from Home and remains in Knowledge Hub only.
 - Home now uses the 10 supplied goal images from goals.rar as a continuously moving slider.
 - Selecting a goal image deep-links to the matching goal inside the Knowledge Hub explorer.
+
+
+## v3.6 LinkedIn content
+- Added the supplied full copy for the World Accreditation Day and WEICAN posts.
+- Added all seven captions and dates from `iESG Linkidin posts.xlsx`.
+- Added expandable post copy in EN/AR so the page remains useful even when LinkedIn embeds are blocked.
+
+
+## v3.7 LinkedIn media
+- Added verified original LinkedIn media to posts where public media URLs could be confirmed.
+- WEICAN post includes a 4-image gallery.
+- UNGC–Accenture and COP30 × 3 × 7 include their confirmed original visuals.
+- Other posts retain the live LinkedIn embed because LinkedIn does not expose a reliable downloadable media URL for those posts in public access.
+- The embed remains a fallback if LinkedIn rotates or blocks a media CDN URL.
