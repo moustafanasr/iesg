@@ -44,3 +44,35 @@ The full content and interaction from the supplied `sdg-explorer-prototype(1).ht
 - UNGC–Accenture and COP30 × 3 × 7 include their confirmed original visuals.
 - Other posts retain the live LinkedIn embed because LinkedIn does not expose a reliable downloadable media URL for those posts in public access.
 - The embed remains a fallback if LinkedIn rotates or blocks a media CDN URL.
+
+
+## v3.8 changes
+- Removed numeric indexes from service cards.
+- Rebuilt the Home SDG carousel to include all 17 goals and start at Goal 1 only when the section enters view.
+- Goals 1–10 use supplied goal artwork; goals 11–17 use matching branded color cards driven by the supplied SDG dataset.
+- Rebuilt the site footer with improved navigation, Nexus links, contact CTA and responsive layout.
+
+
+## v3.9 changes
+- Added the supplied iESG homepage visual library.
+- Replaced all nine Home service-card images with their matching supplied service visuals.
+- Updated Hero main/secondary imagery.
+- Updated Collaborations, Platform, Knowledge Hub and Carbon Reports homepage imagery.
+- Converted supplied PNG assets to optimized WebP and added responsive 16:9 image handling.
+- Updated both English and Arabic home pages.
+
+
+## v4.0 changes
+- Redesigned Home Knowledge Hub and Carbon Footprint Reports cards so imagery and copy never overlap.
+- Converted the Home Partners section into a seamless autoplay marquee using all 15 partner logos; pauses on hover/focus and starts on viewport entry.
+- Rebuilt the footer with all nine service links, Nexus links, CBAM Toolkit, company navigation, full contact details, LinkedIn and stronger CTA.
+- Applied footer and responsive updates to English and Arabic pages.
+
+
+## v4.1 changes
+- Added final custom image assets for SDG Goals 11–17 to `assets/images/goals/`.
+- Replaced the old CSS marquee with a real 17-goal carousel on the Home page.
+- Carousel always starts on Goal 01 when first rendered.
+- Added 01–17 timeline navigation, Previous/Next, pause/play, counter, progress bar, hover/focus pause and mobile swipe.
+- Every goal links directly to its full entry in Knowledge Hub.
+- Updated English and Arabic home pages.

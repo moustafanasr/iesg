@@ -75,6 +75,202 @@
     }
   }
 
+
+
+  /* Partners marquee: start only once the section enters view */
+  qsa('[data-partners-marquee]').forEach(wrap=>{
+    if(reduced) return;
+    const start=()=>wrap.classList.add('is-running');
+    if('IntersectionObserver' in window){
+      const io=new IntersectionObserver(entries=>{
+        entries.forEach(entry=>{
+          if(entry.isIntersecting && entry.intersectionRatio>=0.2){
+            start();
+            io.disconnect();
+          }
+        });
+      },{threshold:[0,.2,.5]});
+      io.observe(wrap);
+    }else{
+      start();
+    }
+  });
+
+  /* Home 17-goal marquee: stay on Goal 1 until the user reaches the section */
+  qsa('[data-goal-marquee]').forEach(marquee=>{
+    const track=qs('.goal-marquee-track',marquee);
+    if(!track) return;
+    let started=false;
+    const start=()=>{
+      if(started) return;
+      started=true;
+      // Force the animation timeline to start from the very first card.
+      marquee.classList.remove('is-running');
+      track.style.animation='none';
+      track.style.transform='translateX(0)';
+      void track.offsetWidth;
+      track.style.animation='';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>marquee.classList.add('is-running')));
+    };
+    if(reduced) return;
+    if('IntersectionObserver' in window){
+      const io=new IntersectionObserver(entries=>{
+        entries.forEach(entry=>{
+          if(entry.isIntersecting && entry.intersectionRatio>=0.35){
+            start();
+            io.disconnect();
+          }
+        });
+      },{threshold:[0,.35,.6]});
+      io.observe(marquee);
+    }else{
+      const check=()=>{
+        const r=marquee.getBoundingClientRect();
+        if(r.top<innerHeight*.78 && r.bottom>0){
+          start();
+          removeEventListener('scroll',check);
+        }
+      };
+      addEventListener('scroll',check,{passive:true});
+      check();
+    }
+  });
+
+
+  /* v4.1 — 17-goal image carousel */
+  qsa('[data-goals-carousel]').forEach(carousel=>{
+    const track = qs('.goals-track', carousel);
+    const cards = qsa('[data-goal-card]', carousel);
+    const timeline = qsa('[data-goal-jump]', carousel.closest('.goals-carousel-section'));
+    const currentEl = qs('[data-goals-current]', carousel.closest('.goals-carousel-section'));
+    const progressEl = qs('[data-goals-progress]', carousel.closest('.goals-carousel-section'));
+    const prevBtns = qsa('[data-goals-prev]', carousel.closest('.goals-carousel-section'));
+    const nextBtns = qsa('[data-goals-next]', carousel.closest('.goals-carousel-section'));
+    const pauseBtn = qs('[data-goals-pause]', carousel.closest('.goals-carousel-section'));
+    if(!track || !cards.length) return;
+
+    let index = 0;
+    let timer = null;
+    let paused = false;
+    let visible = false;
+
+    const visibleCount = ()=>{
+      const vw = window.innerWidth;
+      if(vw <= 380) return 1;
+      if(vw <= 520) return 2;
+      if(vw <= 720) return 3;
+      if(vw <= 950) return 4;
+      if(vw <= 1200) return 5;
+      return 6;
+    };
+
+    const maxIndex = ()=>Math.max(0, cards.length - visibleCount());
+
+    const render = (animate=true)=>{
+      index = Math.max(0, Math.min(index, maxIndex()));
+      const card = cards[index];
+      const gap = parseFloat(getComputedStyle(track).gap || '16');
+      const step = card.getBoundingClientRect().width + gap;
+      if(!animate) track.style.transition='none';
+      track.style.transform = `translate3d(${-index * step}px,0,0)`;
+      if(!animate){
+        void track.offsetWidth;
+        track.style.transition='';
+      }
+      const goal = index + 1;
+      carousel.dataset.currentGoal = String(goal);
+      if(currentEl) currentEl.textContent = String(goal).padStart(2,'0');
+      if(progressEl) progressEl.style.width = `${(goal/17)*100}%`;
+      timeline.forEach((btn,i)=>{
+        const active = i===index;
+        btn.classList.toggle('is-active',active);
+        btn.setAttribute('aria-selected',active?'true':'false');
+      });
+      prevBtns.forEach(b=>b.disabled = index<=0);
+      nextBtns.forEach(b=>b.disabled = index>=maxIndex());
+      const activeTimeline = timeline[index];
+      if(activeTimeline && activeTimeline.scrollIntoView && window.innerWidth<=720){
+        activeTimeline.scrollIntoView({behavior: reduced?'auto':'smooth',block:'nearest',inline:'center'});
+      }
+    };
+
+    const stop=()=>{
+      if(timer){ clearInterval(timer); timer=null; }
+    };
+    const start=()=>{
+      stop();
+      if(reduced || paused || !visible) return;
+      timer=setInterval(()=>{
+        if(index >= maxIndex()) index=0;
+        else index+=1;
+        render();
+      },3800);
+    };
+
+    prevBtns.forEach(btn=>btn.addEventListener('click',()=>{
+      index=Math.max(0,index-1); render(); start();
+    }));
+    nextBtns.forEach(btn=>btn.addEventListener('click',()=>{
+      index = index>=maxIndex()?0:index+1; render(); start();
+    }));
+    timeline.forEach(btn=>btn.addEventListener('click',()=>{
+      index=Math.max(0,Math.min(Number(btn.dataset.goalJump||1)-1,maxIndex()));
+      render(); start();
+    }));
+
+    if(pauseBtn){
+      pauseBtn.addEventListener('click',()=>{
+        paused=!paused;
+        pauseBtn.setAttribute('aria-pressed',paused?'true':'false');
+        pauseBtn.textContent = paused ? '▶' : 'Ⅱ';
+        if(paused) stop(); else start();
+      });
+    }
+
+    carousel.addEventListener('mouseenter',stop);
+    carousel.addEventListener('mouseleave',start);
+    carousel.addEventListener('focusin',stop);
+    carousel.addEventListener('focusout',start);
+
+    let touchX=null;
+    carousel.addEventListener('touchstart',e=>{
+      touchX=e.touches?.[0]?.clientX ?? null;
+      stop();
+    },{passive:true});
+    carousel.addEventListener('touchend',e=>{
+      if(touchX==null) return start();
+      const endX=e.changedTouches?.[0]?.clientX ?? touchX;
+      const dx=endX-touchX;
+      if(Math.abs(dx)>42){
+        if(dx<0) index=Math.min(maxIndex(),index+1);
+        else index=Math.max(0,index-1);
+        render();
+      }
+      touchX=null;
+      start();
+    },{passive:true});
+
+    if('IntersectionObserver' in window){
+      const io=new IntersectionObserver(entries=>{
+        entries.forEach(entry=>{
+          visible=entry.isIntersecting && entry.intersectionRatio>=.22;
+          if(visible) start(); else stop();
+        });
+      },{threshold:[0,.22,.5]});
+      io.observe(carousel);
+    } else {
+      visible=true;
+    }
+
+    let resizeTimer;
+    window.addEventListener('resize',()=>{
+      clearTimeout(resizeTimer);
+      resizeTimer=setTimeout(()=>{ render(false); start(); },120);
+    });
+
+    render(false);
+  });
+
   /* Horizontal sliders */
   qsa('[data-slider]').forEach(shell=>{
     const track=qs('[data-track]',shell);
