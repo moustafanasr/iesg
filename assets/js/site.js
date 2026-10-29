@@ -137,138 +137,285 @@
   });
 
 
-  /* v4.1 — 17-goal image carousel */
+  /* v4.3 — robust native-scroll 17-goal carousel */
   qsa('[data-goals-carousel]').forEach(carousel=>{
+    const section = carousel.closest('.goals-carousel-section');
+    const viewport = qs('.goals-viewport', carousel);
     const track = qs('.goals-track', carousel);
     const cards = qsa('[data-goal-card]', carousel);
-    const timeline = qsa('[data-goal-jump]', carousel.closest('.goals-carousel-section'));
-    const currentEl = qs('[data-goals-current]', carousel.closest('.goals-carousel-section'));
-    const progressEl = qs('[data-goals-progress]', carousel.closest('.goals-carousel-section'));
-    const prevBtns = qsa('[data-goals-prev]', carousel.closest('.goals-carousel-section'));
-    const nextBtns = qsa('[data-goals-next]', carousel.closest('.goals-carousel-section'));
-    const pauseBtn = qs('[data-goals-pause]', carousel.closest('.goals-carousel-section'));
-    if(!track || !cards.length) return;
+    const timeline = qsa('[data-goal-jump]', section);
+    const currentEl = qs('[data-goals-current]', section);
+    const progressEl = qs('[data-goals-progress]', section);
+    const prevBtns = qsa('[data-goals-prev]', section);
+    const nextBtns = qsa('[data-goals-next]', section);
+    const pauseBtn = qs('[data-goals-pause]', section);
+    if(!viewport || !track || cards.length !== 17) return;
 
-    let index = 0;
+    let selected = 0;       // Selected GOAL, independent from scroll position.
     let timer = null;
+    let firstTimer = null;
     let paused = false;
-    let visible = false;
+    let inView = false;
+    let userResumeTimer = null;
+    let programmatic = false;
+    let programmaticTimer = null;
+    let scrollEndTimer = null;
+    let dragMoved = false;
 
-    const visibleCount = ()=>{
-      const vw = window.innerWidth;
-      if(vw <= 380) return 1;
-      if(vw <= 520) return 2;
-      if(vw <= 720) return 3;
-      if(vw <= 950) return 4;
-      if(vw <= 1200) return 5;
-      return 6;
-    };
+    const clamp=(n,min,max)=>Math.max(min,Math.min(n,max));
+    const maxScroll=()=>Math.max(0,viewport.scrollWidth-viewport.clientWidth);
 
-    const maxIndex = ()=>Math.max(0, cards.length - visibleCount());
+    const updateUI=()=>{
+      const goal=selected+1;
+      carousel.dataset.currentGoal=String(goal);
 
-    const render = (animate=true)=>{
-      index = Math.max(0, Math.min(index, maxIndex()));
-      const card = cards[index];
-      const gap = parseFloat(getComputedStyle(track).gap || '16');
-      const step = card.getBoundingClientRect().width + gap;
-      if(!animate) track.style.transition='none';
-      track.style.transform = `translate3d(${-index * step}px,0,0)`;
-      if(!animate){
-        void track.offsetWidth;
-        track.style.transition='';
-      }
-      const goal = index + 1;
-      carousel.dataset.currentGoal = String(goal);
-      if(currentEl) currentEl.textContent = String(goal).padStart(2,'0');
-      if(progressEl) progressEl.style.width = `${(goal/17)*100}%`;
+      if(currentEl) currentEl.textContent=String(goal).padStart(2,'0');
+      if(progressEl) progressEl.style.width=`${(goal/17)*100}%`;
+
+      cards.forEach((card,i)=>{
+        const active=i===selected;
+        card.classList.toggle('is-selected',active);
+        if(active) card.setAttribute('aria-current','true');
+        else card.removeAttribute('aria-current');
+      });
+
       timeline.forEach((btn,i)=>{
-        const active = i===index;
+        const active=i===selected;
         btn.classList.toggle('is-active',active);
         btn.setAttribute('aria-selected',active?'true':'false');
       });
-      prevBtns.forEach(b=>b.disabled = index<=0);
-      nextBtns.forEach(b=>b.disabled = index>=maxIndex());
-      const activeTimeline = timeline[index];
-      if(activeTimeline && activeTimeline.scrollIntoView && window.innerWidth<=720){
-        activeTimeline.scrollIntoView({behavior: reduced?'auto':'smooth',block:'nearest',inline:'center'});
+
+      prevBtns.forEach(btn=>btn.disabled=selected===0);
+      nextBtns.forEach(btn=>btn.disabled=selected===cards.length-1);
+
+      const timelineBtn=timeline[selected];
+      if(timelineBtn && window.innerWidth<=720){
+        timelineBtn.scrollIntoView({
+          behavior:reduced?'auto':'smooth',
+          block:'nearest',
+          inline:'center'
+        });
       }
     };
 
-    const stop=()=>{
-      if(timer){ clearInterval(timer); timer=null; }
-    };
-    const start=()=>{
-      stop();
-      if(reduced || paused || !visible) return;
-      timer=setInterval(()=>{
-        if(index >= maxIndex()) index=0;
-        else index+=1;
-        render();
-      },3800);
+    const cardTargetLeft=(i)=>{
+      const card=cards[i];
+      if(!card) return 0;
+      // Put selected card at the start where possible.
+      // Browser clamps final goals naturally so 17 stays reachable/selected.
+      return clamp(card.offsetLeft-track.offsetLeft,0,maxScroll());
     };
 
+    const scrollToGoal=(i,{behavior='smooth',restart=true}={})=>{
+      selected=clamp(i,0,cards.length-1);
+      updateUI();
+
+      programmatic=true;
+      clearTimeout(programmaticTimer);
+      viewport.scrollTo({
+        left:cardTargetLeft(selected),
+        behavior:reduced?'auto':behavior
+      });
+      programmaticTimer=setTimeout(()=>{programmatic=false;},750);
+
+      if(restart) scheduleAutoplayAfterInteraction();
+    };
+
+    const stopAutoplay=()=>{
+      if(timer){clearInterval(timer);timer=null;}
+      if(firstTimer){clearTimeout(firstTimer);firstTimer=null;}
+    };
+
+    const runInterval=()=>{
+      if(reduced || paused || !inView) return;
+      if(timer) clearInterval(timer);
+      timer=setInterval(()=>{
+        const next=selected>=cards.length-1?0:selected+1;
+        scrollToGoal(next,{behavior:'smooth',restart:false});
+      },5200);
+    };
+
+    const startAutoplay=()=>{
+      stopAutoplay();
+      if(reduced || paused || !inView) return;
+      // Keep Goal 01 visible long enough when the section first enters view.
+      firstTimer=setTimeout(()=>{
+        firstTimer=null;
+        if(reduced || paused || !inView) return;
+        scrollToGoal(selected>=cards.length-1?0:selected+1,{
+          behavior:'smooth',
+          restart:false
+        });
+        runInterval();
+      },7000);
+    };
+
+    const scheduleAutoplayAfterInteraction=()=>{
+      stopAutoplay();
+      clearTimeout(userResumeTimer);
+      userResumeTimer=setTimeout(()=>{
+        if(inView && !paused) runInterval();
+      },6500);
+    };
+
+    const deriveSelectionFromManualScroll=()=>{
+      const left=viewport.scrollLeft;
+      const max=maxScroll();
+
+      if(left<=3) return 0;
+      if(max-left<=3) return cards.length-1;
+
+      // On manual scrolling, select the card nearest the viewport's left edge.
+      let best=0;
+      let bestDistance=Infinity;
+      cards.forEach((card,i)=>{
+        const cardLeft=card.offsetLeft-track.offsetLeft;
+        const d=Math.abs(cardLeft-left);
+        if(d<bestDistance){bestDistance=d;best=i;}
+      });
+      return best;
+    };
+
+    // Arrow controls.
     prevBtns.forEach(btn=>btn.addEventListener('click',()=>{
-      index=Math.max(0,index-1); render(); start();
+      scrollToGoal(selected-1);
     }));
     nextBtns.forEach(btn=>btn.addEventListener('click',()=>{
-      index = index>=maxIndex()?0:index+1; render(); start();
-    }));
-    timeline.forEach(btn=>btn.addEventListener('click',()=>{
-      index=Math.max(0,Math.min(Number(btn.dataset.goalJump||1)-1,maxIndex()));
-      render(); start();
+      scrollToGoal(selected+1);
     }));
 
+    // Direct 01–17 navigation.
+    timeline.forEach(btn=>btn.addEventListener('click',()=>{
+      const i=Number(btn.dataset.goalJump||1)-1;
+      scrollToGoal(i);
+    }));
+
+    // Pause / Play.
     if(pauseBtn){
       pauseBtn.addEventListener('click',()=>{
         paused=!paused;
         pauseBtn.setAttribute('aria-pressed',paused?'true':'false');
-        pauseBtn.textContent = paused ? '▶' : 'Ⅱ';
-        if(paused) stop(); else start();
+        pauseBtn.textContent=paused?'▶':'Ⅱ';
+        if(paused) stopAutoplay();
+        else startAutoplay();
       });
     }
 
-    carousel.addEventListener('mouseenter',stop);
-    carousel.addEventListener('mouseleave',start);
-    carousel.addEventListener('focusin',stop);
-    carousel.addEventListener('focusout',start);
+    // Trackpad / wheel. Convert vertical wheel to horizontal only while
+    // the carousel can continue in that direction.
+    viewport.addEventListener('wheel',e=>{
+      const delta=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;
+      if(Math.abs(delta)<1) return;
 
-    let touchX=null;
-    carousel.addEventListener('touchstart',e=>{
-      touchX=e.touches?.[0]?.clientX ?? null;
-      stop();
-    },{passive:true});
-    carousel.addEventListener('touchend',e=>{
-      if(touchX==null) return start();
-      const endX=e.changedTouches?.[0]?.clientX ?? touchX;
-      const dx=endX-touchX;
-      if(Math.abs(dx)>42){
-        if(dx<0) index=Math.min(maxIndex(),index+1);
-        else index=Math.max(0,index-1);
-        render();
+      const left=viewport.scrollLeft;
+      const max=maxScroll();
+      const canMove=(delta>0 && left<max-2)||(delta<0 && left>2);
+      if(!canMove) return; // Let the page continue scrolling at boundaries.
+
+      e.preventDefault();
+      programmatic=false;
+      viewport.scrollLeft+=delta;
+      scheduleAutoplayAfterInteraction();
+    },{passive:false});
+
+    // Pointer drag (mouse, pen, touch).
+    let dragging=false;
+    let pointerId=null;
+    let startX=0;
+    let startLeft=0;
+
+    viewport.addEventListener('pointerdown',e=>{
+      if(e.pointerType==='mouse' && e.button!==0) return;
+      dragging=true;
+      dragMoved=false;
+      pointerId=e.pointerId;
+      startX=e.clientX;
+      startLeft=viewport.scrollLeft;
+      viewport.classList.add('is-dragging');
+      viewport.setPointerCapture?.(pointerId);
+      stopAutoplay();
+    });
+
+    viewport.addEventListener('pointermove',e=>{
+      if(!dragging || e.pointerId!==pointerId) return;
+      const dx=e.clientX-startX;
+      if(Math.abs(dx)>5) dragMoved=true;
+      viewport.scrollLeft=startLeft-dx;
+    });
+
+    const finishDrag=e=>{
+      if(!dragging || (e.pointerId!=null && e.pointerId!==pointerId)) return;
+      dragging=false;
+      viewport.classList.remove('is-dragging');
+      try{viewport.releasePointerCapture?.(pointerId);}catch(_){}
+      pointerId=null;
+
+      selected=deriveSelectionFromManualScroll();
+      updateUI();
+
+      // Snap the selected card neatly after dragging.
+      programmatic=true;
+      viewport.scrollTo({
+        left:cardTargetLeft(selected),
+        behavior:reduced?'auto':'smooth'
+      });
+      clearTimeout(programmaticTimer);
+      programmaticTimer=setTimeout(()=>{programmatic=false;dragMoved=false;},650);
+      scheduleAutoplayAfterInteraction();
+    };
+
+    viewport.addEventListener('pointerup',finishDrag);
+    viewport.addEventListener('pointercancel',finishDrag);
+
+    // Prevent opening a goal when the user was dragging the carousel.
+    cards.forEach(card=>card.addEventListener('click',e=>{
+      if(dragMoved){
+        e.preventDefault();
+        e.stopPropagation();
       }
-      touchX=null;
-      start();
+    },true));
+
+    // Sync UI after native/manual scrollbar or trackpad scrolling.
+    viewport.addEventListener('scroll',()=>{
+      if(programmatic) return;
+      clearTimeout(scrollEndTimer);
+      scrollEndTimer=setTimeout(()=>{
+        selected=deriveSelectionFromManualScroll();
+        updateUI();
+      },110);
     },{passive:true});
 
+    // Only autoplay while the section is actually visible.
     if('IntersectionObserver' in window){
       const io=new IntersectionObserver(entries=>{
         entries.forEach(entry=>{
-          visible=entry.isIntersecting && entry.intersectionRatio>=.22;
-          if(visible) start(); else stop();
+          inView=entry.isIntersecting && entry.intersectionRatio>=.25;
+          if(inView) startAutoplay();
+          else stopAutoplay();
         });
-      },{threshold:[0,.22,.5]});
+      },{threshold:[0,.25,.5]});
       io.observe(carousel);
-    } else {
-      visible=true;
+    }else{
+      inView=true;
+      startAutoplay();
     }
 
-    let resizeTimer;
-    window.addEventListener('resize',()=>{
+    // Recalculate target positions responsively.
+    let resizeTimer=null;
+    addEventListener('resize',()=>{
       clearTimeout(resizeTimer);
-      resizeTimer=setTimeout(()=>{ render(false); start(); },120);
+      resizeTimer=setTimeout(()=>{
+        programmatic=true;
+        viewport.scrollTo({left:cardTargetLeft(selected),behavior:'auto'});
+        setTimeout(()=>{programmatic=false;},80);
+        updateUI();
+      },120);
     });
 
-    render(false);
+    // Initial guaranteed state: Goal 01, no inherited scroll position.
+    selected=0;
+    viewport.scrollLeft=0;
+    updateUI();
   });
 
   /* Horizontal sliders */

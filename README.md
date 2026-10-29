@@ -76,3 +76,21 @@ The full content and interaction from the supplied `sdg-explorer-prototype(1).ht
 - Added 01–17 timeline navigation, Previous/Next, pause/play, counter, progress bar, hover/focus pause and mobile swipe.
 - Every goal links directly to its full entry in Knowledge Hub.
 - Updated English and Arabic home pages.
+
+
+## v4.2 final chat fixes
+- Replaced the Home hero eyebrow with the official slogan: “Redefining Sustainability, Amplifying Impact to the Next Level”.
+- Made the Home SDG carousel a true native horizontal scroller with trackpad/wheel, drag, touch swipe, arrows, autoplay and 01–17 controls.
+- Home goal cards now open the standalone SDG explorer directly at the selected goal.
+- Removed the embedded full SDG explorer from Knowledge Hub; it is now accessible only through the Explore button.
+- Removed decorative numeric order badges from ordinary cards/boxes across the site (excluding SDG goal identity and factual metrics).
+- Rebuilt About core values into image + text feature rows for Mission, Vision and Philosophy.
+- External CBAM Hub now opens in a new tab so the main iESG preview remains available.
+
+
+## v4.3 SDG carousel repair
+- Rebuilt the Home SDG controller so selected goal and scroll position are independent.
+- All 17 timeline buttons can now select Goals 01–17 correctly, including the final goals when the viewport is clamped at the right edge.
+- Fixed native horizontal wheel/trackpad scrolling, pointer drag, touch interaction, Previous/Next and counter/progress synchronization.
+- Added selected-card visual state and reliable Goal 01 initial reset.
+- Increased first autoplay dwell to 7 seconds and standard autoplay interval to 5.2 seconds.

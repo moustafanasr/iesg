@@ -1334,3 +1334,281 @@ h1,h2,h3,h4{line-height:1.12;margin:0;color:var(--ink);letter-spacing:-.025em}p{
   .goals-track{transition:none!important}
   .goals-viewport{scroll-behavior:auto}
 }
+
+
+/* =========================================================
+   v4.2 — final chat fixes
+   ========================================================= */
+
+/* Hero slogan replaces old eyebrow */
+.hero-v31 .hero-slogan{
+  display:inline-flex!important;
+  align-items:center;
+  gap:11px;
+  max-width:620px;
+  margin-bottom:14px!important;
+  color:#80d6e5!important;
+  font-size:clamp(.68rem,.88vw,.82rem)!important;
+  line-height:1.45!important;
+  letter-spacing:.085em!important;
+  font-weight:700!important;
+  text-transform:none!important;
+}
+.hero-v31 .hero-slogan:before{
+  content:"";
+  flex:0 0 28px;
+  width:28px;height:2px;
+  border-radius:99px;
+  background:linear-gradient(90deg,#52b15d,#46c5df);
+}
+
+/* No ornamental order numbers on normal content cards */
+.card > .tag,
+.sector-index,
+.linkedin-number{
+  display:none!important;
+}
+.principle-row > span:first-child{display:none!important}
+.principle-row{grid-template-columns:1fr!important}
+
+/* About core values — image + copy pairs */
+.about-values-showcase{
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+}
+.about-value-item{
+  display:grid;
+  grid-template-columns:minmax(280px,.78fr) minmax(0,1.22fr);
+  min-height:260px;
+  border:1px solid #dfe8e4;
+  border-radius:28px;
+  overflow:hidden;
+  background:#fff;
+  box-shadow:0 14px 42px rgba(17,37,49,.055);
+  transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease;
+}
+.about-value-item.is-reverse{
+  grid-template-columns:minmax(0,1.22fr) minmax(280px,.78fr);
+}
+.about-value-item.is-reverse .about-value-media{order:2}
+.about-value-item.is-reverse .about-value-copy{order:1}
+.about-value-item:hover{
+  transform:translateY(-5px);
+  border-color:#c5d9d0;
+  box-shadow:0 24px 56px rgba(17,37,49,.10);
+}
+.about-value-media{
+  position:relative;
+  min-height:260px;
+  overflow:hidden;
+}
+.about-value-media:after{
+  content:"";
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(7,27,39,.03),rgba(50,160,124,.07));
+  pointer-events:none;
+}
+.about-value-media img{
+  width:100%;height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+  transition:transform .65s cubic-bezier(.2,.8,.2,1);
+}
+.about-value-item:hover .about-value-media img{transform:scale(1.035)}
+.about-value-copy.card{
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  transform:none!important;
+  padding:38px 40px!important;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  background:#fff!important;
+}
+.about-value-copy h3{
+  margin:0 0 12px!important;
+  font-size:clamp(1.35rem,2vw,1.75rem)!important;
+  letter-spacing:-.035em;
+}
+.about-value-copy p{
+  margin:0!important;
+  max-width:58ch;
+  font-size:.9rem!important;
+  line-height:1.8!important;
+}
+
+/* Goals — native horizontal scrolling */
+.goals-carousel{
+  display:grid!important;
+  grid-template-columns:46px minmax(0,1fr) 46px!important;
+}
+.goals-viewport{
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  overscroll-behavior-x:contain;
+  scroll-snap-type:x mandatory;
+  scroll-behavior:smooth;
+  scrollbar-width:thin;
+  scrollbar-color:#86c6d6 transparent;
+  cursor:grab;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-x pan-y;
+}
+.goals-viewport:active{cursor:grabbing}
+.goals-viewport::-webkit-scrollbar{height:6px}
+.goals-viewport::-webkit-scrollbar-track{background:transparent}
+.goals-viewport::-webkit-scrollbar-thumb{
+  background:#9acbd6;
+  border-radius:999px;
+}
+.goals-track{
+  transform:none!important;
+  transition:none!important;
+  width:max-content;
+}
+.goal-card{
+  scroll-snap-align:start;
+  scroll-snap-stop:normal;
+}
+.goals-carousel-section .text-link{
+  white-space:nowrap;
+}
+
+/* Knowledge Hub now uses the standalone SDG explorer only */
+.knowledge-explorer-removed{display:none!important}
+
+@media(max-width:760px){
+  .about-value-item,
+  .about-value-item.is-reverse{
+    grid-template-columns:1fr;
+  }
+  .about-value-item.is-reverse .about-value-media,
+  .about-value-item.is-reverse .about-value-copy{order:initial}
+  .about-value-media{min-height:210px}
+  .about-value-copy.card{padding:25px!important}
+  .hero-v31 .hero-slogan{
+    max-width:100%;
+    letter-spacing:.045em!important;
+    font-size:.7rem!important;
+  }
+}
+
+
+/* =========================================================
+   v4.3 — robust SDG carousel fixes
+   ========================================================= */
+.goals-carousel-section{
+  --goal-gap:16px;
+}
+.goals-carousel{
+  position:relative;
+  min-width:0;
+}
+.goals-viewport{
+  min-width:0!important;
+  width:100%!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  padding:6px 2px 16px!important;
+  scroll-snap-type:x proximity!important;
+  scroll-padding-inline:2px;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-x pan-y;
+  cursor:grab;
+}
+.goals-viewport.is-dragging{
+  cursor:grabbing;
+  scroll-snap-type:none!important;
+  user-select:none;
+}
+.goals-track{
+  display:flex!important;
+  width:max-content!important;
+  min-width:100%;
+  gap:var(--goal-gap)!important;
+  transform:none!important;
+  transition:none!important;
+}
+.goal-card{
+  /* Do not use percentage flex-basis inside a max-content track. */
+  flex:0 0 clamp(172px,13.6vw,210px)!important;
+  width:clamp(172px,13.6vw,210px)!important;
+  min-width:0!important;
+  scroll-snap-align:start;
+  position:relative;
+}
+.goal-card-media{
+  transition:
+    box-shadow .28s ease,
+    border-color .28s ease,
+    outline-color .28s ease,
+    transform .28s ease;
+}
+.goal-card.is-selected .goal-card-media{
+  border-color:color-mix(in srgb,var(--goal-color) 78%,#ffffff)!important;
+  outline:3px solid color-mix(in srgb,var(--goal-color) 22%,transparent);
+  outline-offset:3px;
+  box-shadow:0 18px 44px color-mix(in srgb,var(--goal-color) 15%,rgba(18,39,52,.08));
+}
+.goal-card.is-selected .goal-card-title{
+  color:#132436!important;
+  font-weight:750!important;
+}
+.goal-card.is-selected .goal-card-number{
+  font-weight:900!important;
+}
+.goals-arrow{
+  position:relative;
+  z-index:5;
+}
+.goals-arrow:disabled{
+  opacity:.28!important;
+}
+.goals-progress span{
+  min-width:calc(100% / 17);
+}
+.goals-scroll-hint{
+  display:none;
+}
+
+/* Keep the 01–17 timeline clear and clickable. */
+.goals-timeline{
+  isolation:isolate;
+}
+.goal-timeline-btn{
+  cursor:pointer!important;
+  -webkit-tap-highlight-color:transparent;
+}
+.goal-timeline-btn.is-active{
+  transform:scale(1.06);
+}
+
+@media(max-width:1200px){
+  .goal-card{
+    flex-basis:clamp(170px,17vw,200px)!important;
+    width:clamp(170px,17vw,200px)!important;
+  }
+}
+@media(max-width:900px){
+  .goal-card{
+    flex-basis:clamp(165px,23vw,190px)!important;
+    width:clamp(165px,23vw,190px)!important;
+  }
+}
+@media(max-width:620px){
+  .goals-carousel{
+    grid-template-columns:34px minmax(0,1fr) 34px!important;
+  }
+  .goal-card{
+    flex-basis:min(72vw,185px)!important;
+    width:min(72vw,185px)!important;
+  }
+  .goals-viewport{
+    scrollbar-width:none;
+  }
+  .goals-viewport::-webkit-scrollbar{display:none}
+}
