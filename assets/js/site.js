@@ -137,7 +137,7 @@
   });
 
 
-  /* v4.3 — robust native-scroll 17-goal carousel */
+  /* v4.5 — SDG carousel with reliable goal navigation */
   qsa('[data-goals-carousel]').forEach(carousel=>{
     const section = carousel.closest('.goals-carousel-section');
     const viewport = qs('.goals-viewport', carousel);
@@ -151,16 +151,14 @@
     const pauseBtn = qs('[data-goals-pause]', section);
     if(!viewport || !track || cards.length !== 17) return;
 
-    let selected = 0;       // Selected GOAL, independent from scroll position.
-    let timer = null;
-    let firstTimer = null;
-    let paused = false;
-    let inView = false;
-    let userResumeTimer = null;
-    let programmatic = false;
-    let programmaticTimer = null;
-    let scrollEndTimer = null;
-    let dragMoved = false;
+    let selected=0;
+    let timer=null;
+    let firstTimer=null;
+    let paused=false;
+    let inView=false;
+    let userResumeTimer=null;
+    let programmatic=false;
+    let scrollEndTimer=null;
 
     const clamp=(n,min,max)=>Math.max(min,Math.min(n,max));
     const maxScroll=()=>Math.max(0,viewport.scrollWidth-viewport.clientWidth);
@@ -168,7 +166,6 @@
     const updateUI=()=>{
       const goal=selected+1;
       carousel.dataset.currentGoal=String(goal);
-
       if(currentEl) currentEl.textContent=String(goal).padStart(2,'0');
       if(progressEl) progressEl.style.width=`${(goal/17)*100}%`;
 
@@ -179,45 +176,31 @@
         else card.removeAttribute('aria-current');
       });
 
-      timeline.forEach((btn,i)=>{
+      timeline.forEach((item,i)=>{
         const active=i===selected;
-        btn.classList.toggle('is-active',active);
-        btn.setAttribute('aria-selected',active?'true':'false');
+        item.classList.toggle('is-active',active);
+        item.setAttribute('aria-selected',active?'true':'false');
       });
 
       prevBtns.forEach(btn=>btn.disabled=selected===0);
       nextBtns.forEach(btn=>btn.disabled=selected===cards.length-1);
-
-      const timelineBtn=timeline[selected];
-      if(timelineBtn && window.innerWidth<=720){
-        timelineBtn.scrollIntoView({
-          behavior:reduced?'auto':'smooth',
-          block:'nearest',
-          inline:'center'
-        });
-      }
     };
 
     const cardTargetLeft=(i)=>{
       const card=cards[i];
       if(!card) return 0;
-      // Put selected card at the start where possible.
-      // Browser clamps final goals naturally so 17 stays reachable/selected.
       return clamp(card.offsetLeft-track.offsetLeft,0,maxScroll());
     };
 
     const scrollToGoal=(i,{behavior='smooth',restart=true}={})=>{
       selected=clamp(i,0,cards.length-1);
       updateUI();
-
       programmatic=true;
-      clearTimeout(programmaticTimer);
       viewport.scrollTo({
         left:cardTargetLeft(selected),
         behavior:reduced?'auto':behavior
       });
-      programmaticTimer=setTimeout(()=>{programmatic=false;},750);
-
+      setTimeout(()=>{programmatic=false;},700);
       if(restart) scheduleAutoplayAfterInteraction();
     };
 
@@ -227,25 +210,20 @@
     };
 
     const runInterval=()=>{
-      if(reduced || paused || !inView) return;
+      if(reduced||paused||!inView) return;
       if(timer) clearInterval(timer);
       timer=setInterval(()=>{
-        const next=selected>=cards.length-1?0:selected+1;
-        scrollToGoal(next,{behavior:'smooth',restart:false});
+        scrollToGoal(selected>=16?0:selected+1,{behavior:'smooth',restart:false});
       },5200);
     };
 
     const startAutoplay=()=>{
       stopAutoplay();
-      if(reduced || paused || !inView) return;
-      // Keep Goal 01 visible long enough when the section first enters view.
+      if(reduced||paused||!inView) return;
       firstTimer=setTimeout(()=>{
         firstTimer=null;
-        if(reduced || paused || !inView) return;
-        scrollToGoal(selected>=cards.length-1?0:selected+1,{
-          behavior:'smooth',
-          restart:false
-        });
+        if(reduced||paused||!inView) return;
+        scrollToGoal(selected>=16?0:selected+1,{behavior:'smooth',restart:false});
         runInterval();
       },7000);
     };
@@ -253,21 +231,16 @@
     const scheduleAutoplayAfterInteraction=()=>{
       stopAutoplay();
       clearTimeout(userResumeTimer);
-      userResumeTimer=setTimeout(()=>{
-        if(inView && !paused) runInterval();
-      },6500);
+      userResumeTimer=setTimeout(()=>{ if(inView&&!paused) runInterval(); },6500);
     };
 
-    const deriveSelectionFromManualScroll=()=>{
+    const deriveSelectionFromScroll=()=>{
       const left=viewport.scrollLeft;
       const max=maxScroll();
-
       if(left<=3) return 0;
-      if(max-left<=3) return cards.length-1;
+      if(max-left<=3) return 16;
 
-      // On manual scrolling, select the card nearest the viewport's left edge.
-      let best=0;
-      let bestDistance=Infinity;
+      let best=0, bestDistance=Infinity;
       cards.forEach((card,i)=>{
         const cardLeft=card.offsetLeft-track.offsetLeft;
         const d=Math.abs(cardLeft-left);
@@ -276,33 +249,85 @@
       return best;
     };
 
-    // Arrow controls.
-    prevBtns.forEach(btn=>btn.addEventListener('click',()=>{
-      scrollToGoal(selected-1);
-    }));
-    nextBtns.forEach(btn=>btn.addEventListener('click',()=>{
-      scrollToGoal(selected+1);
-    }));
+    // Carousel arrows only scroll the preview.
+    prevBtns.forEach(btn=>btn.addEventListener('click',()=>scrollToGoal(selected-1)));
+    nextBtns.forEach(btn=>btn.addEventListener('click',()=>scrollToGoal(selected+1)));
 
-    // Direct 01–17 navigation.
-    timeline.forEach(btn=>btn.addEventListener('click',()=>{
-      const i=Number(btn.dataset.goalJump||1)-1;
-      scrollToGoal(i);
-    }));
-
-    // Pause / Play.
-    if(pauseBtn){
-      pauseBtn.addEventListener('click',()=>{
-        paused=!paused;
-        pauseBtn.setAttribute('aria-pressed',paused?'true':'false');
-        pauseBtn.textContent=paused?'▶':'Ⅱ';
-        if(paused) stopAutoplay();
-        else startAutoplay();
+    // 01–17 timeline links navigate directly to the matching goal page.
+    timeline.forEach(item=>{
+      item.addEventListener('click',e=>{
+        const href=item.getAttribute('href');
+        if(!href) return;
+        stopAutoplay();
+        // Explicit navigation avoids any browser/drag edge cases.
+        e.preventDefault();
+        window.location.assign(href);
       });
-    }
+    });
 
-    // Trackpad / wheel. Convert vertical wheel to horizontal only while
-    // the carousel can continue in that direction.
+    // Card links: normal click ALWAYS navigates.
+    // We only suppress the click if the mouse actually dragged horizontally.
+    let mouseDragging=false;
+    let dragMoved=false;
+    let startX=0;
+    let startLeft=0;
+
+    viewport.addEventListener('mousedown',e=>{
+      if(e.button!==0) return;
+      mouseDragging=true;
+      dragMoved=false;
+      startX=e.clientX;
+      startLeft=viewport.scrollLeft;
+      viewport.classList.add('is-dragging');
+      stopAutoplay();
+    });
+
+    window.addEventListener('mousemove',e=>{
+      if(!mouseDragging) return;
+      const dx=e.clientX-startX;
+      if(Math.abs(dx)>7) dragMoved=true;
+      if(dragMoved) viewport.scrollLeft=startLeft-dx;
+    });
+
+    window.addEventListener('mouseup',()=>{
+      if(!mouseDragging) return;
+      mouseDragging=false;
+      viewport.classList.remove('is-dragging');
+
+      if(dragMoved){
+        selected=deriveSelectionFromScroll();
+        updateUI();
+        viewport.scrollTo({
+          left:cardTargetLeft(selected),
+          behavior:reduced?'auto':'smooth'
+        });
+        setTimeout(()=>{dragMoved=false;},120);
+      }
+      scheduleAutoplayAfterInteraction();
+    });
+
+    cards.forEach(card=>{
+      card.addEventListener('click',e=>{
+        const href=card.getAttribute('href') || card.dataset.goalLink;
+        if(!href) return;
+
+        if(dragMoved){
+          e.preventDefault();
+          return;
+        }
+
+        stopAutoplay();
+        // Force the link explicitly so it works even inside the draggable viewport.
+        e.preventDefault();
+        window.location.assign(href);
+      });
+    });
+
+    // Touch uses native horizontal scrolling, so taps remain real link taps.
+    viewport.addEventListener('touchstart',()=>stopAutoplay(),{passive:true});
+    viewport.addEventListener('touchend',()=>scheduleAutoplayAfterInteraction(),{passive:true});
+
+    // Trackpad / mouse wheel horizontal browsing.
     viewport.addEventListener('wheel',e=>{
       const delta=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;
       if(Math.abs(delta)<1) return;
@@ -310,7 +335,7 @@
       const left=viewport.scrollLeft;
       const max=maxScroll();
       const canMove=(delta>0 && left<max-2)||(delta<0 && left>2);
-      if(!canMove) return; // Let the page continue scrolling at boundaries.
+      if(!canMove) return;
 
       e.preventDefault();
       programmatic=false;
@@ -318,80 +343,29 @@
       scheduleAutoplayAfterInteraction();
     },{passive:false});
 
-    // Pointer drag (mouse, pen, touch).
-    let dragging=false;
-    let pointerId=null;
-    let startX=0;
-    let startLeft=0;
-
-    viewport.addEventListener('pointerdown',e=>{
-      if(e.pointerType==='mouse' && e.button!==0) return;
-      dragging=true;
-      dragMoved=false;
-      pointerId=e.pointerId;
-      startX=e.clientX;
-      startLeft=viewport.scrollLeft;
-      viewport.classList.add('is-dragging');
-      viewport.setPointerCapture?.(pointerId);
-      stopAutoplay();
-    });
-
-    viewport.addEventListener('pointermove',e=>{
-      if(!dragging || e.pointerId!==pointerId) return;
-      const dx=e.clientX-startX;
-      if(Math.abs(dx)>5) dragMoved=true;
-      viewport.scrollLeft=startLeft-dx;
-    });
-
-    const finishDrag=e=>{
-      if(!dragging || (e.pointerId!=null && e.pointerId!==pointerId)) return;
-      dragging=false;
-      viewport.classList.remove('is-dragging');
-      try{viewport.releasePointerCapture?.(pointerId);}catch(_){}
-      pointerId=null;
-
-      selected=deriveSelectionFromManualScroll();
-      updateUI();
-
-      // Snap the selected card neatly after dragging.
-      programmatic=true;
-      viewport.scrollTo({
-        left:cardTargetLeft(selected),
-        behavior:reduced?'auto':'smooth'
-      });
-      clearTimeout(programmaticTimer);
-      programmaticTimer=setTimeout(()=>{programmatic=false;dragMoved=false;},650);
-      scheduleAutoplayAfterInteraction();
-    };
-
-    viewport.addEventListener('pointerup',finishDrag);
-    viewport.addEventListener('pointercancel',finishDrag);
-
-    // Prevent opening a goal when the user was dragging the carousel.
-    cards.forEach(card=>card.addEventListener('click',e=>{
-      if(dragMoved){
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    },true));
-
-    // Sync UI after native/manual scrollbar or trackpad scrolling.
     viewport.addEventListener('scroll',()=>{
       if(programmatic) return;
       clearTimeout(scrollEndTimer);
       scrollEndTimer=setTimeout(()=>{
-        selected=deriveSelectionFromManualScroll();
+        selected=deriveSelectionFromScroll();
         updateUI();
       },110);
     },{passive:true});
 
-    // Only autoplay while the section is actually visible.
+    if(pauseBtn){
+      pauseBtn.addEventListener('click',()=>{
+        paused=!paused;
+        pauseBtn.setAttribute('aria-pressed',paused?'true':'false');
+        pauseBtn.textContent=paused?'▶':'Ⅱ';
+        if(paused) stopAutoplay(); else startAutoplay();
+      });
+    }
+
     if('IntersectionObserver' in window){
       const io=new IntersectionObserver(entries=>{
         entries.forEach(entry=>{
           inView=entry.isIntersecting && entry.intersectionRatio>=.25;
-          if(inView) startAutoplay();
-          else stopAutoplay();
+          if(inView) startAutoplay(); else stopAutoplay();
         });
       },{threshold:[0,.25,.5]});
       io.observe(carousel);
@@ -400,19 +374,15 @@
       startAutoplay();
     }
 
-    // Recalculate target positions responsively.
     let resizeTimer=null;
     addEventListener('resize',()=>{
       clearTimeout(resizeTimer);
       resizeTimer=setTimeout(()=>{
-        programmatic=true;
         viewport.scrollTo({left:cardTargetLeft(selected),behavior:'auto'});
-        setTimeout(()=>{programmatic=false;},80);
         updateUI();
       },120);
     });
 
-    // Initial guaranteed state: Goal 01, no inherited scroll position.
     selected=0;
     viewport.scrollLeft=0;
     updateUI();

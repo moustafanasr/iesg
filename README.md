@@ -94,3 +94,20 @@ The full content and interaction from the supplied `sdg-explorer-prototype(1).ht
 - Fixed native horizontal wheel/trackpad scrolling, pointer drag, touch interaction, Previous/Next and counter/progress synchronization.
 - Added selected-card visual state and reliable Goal 01 initial reset.
 - Increased first autoplay dwell to 7 seconds and standard autoplay interval to 5.2 seconds.
+
+
+## v4.4 — 17 Goals deep links
+- Added explicit `17-goals.html` and `ar/17-goals.html` pages.
+- Every Goal card on Home now opens the matching goal directly using `17-goals.html#goal-X`.
+- The 01–17 timeline items also open the matching goal directly.
+- The 17 Goals page now listens for hash changes and re-renders the selected goal reliably.
+- Existing `sdg-explorer.html` links remain functional for backward compatibility.
+
+
+## v4.5 — Goal link click fix
+- Removed pointer-capture behavior that could swallow clicks inside the draggable carousel.
+- Goal cards now explicitly navigate to `17-goals.html#goal-X` on a normal click.
+- 01–17 timeline links explicitly navigate to the matching goal as well.
+- Mouse drag still scrolls horizontally and only suppresses navigation when a real drag occurred.
+- Touch uses native scrolling so taps remain clickable links.
+- Added an extra hash-application pass on the 17 Goals page for reliable deep linking after page render.

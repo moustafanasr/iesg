@@ -342,10 +342,50 @@ body[dir="rtl"] .goal-btn:hover{transform:translateX(-2px)}
     document.getElementById('pagefoot').textContent = t('foot');
     renderRail(); renderPanel();
   }
-  function select(n){ if (n < 1 || n > 17) return; cur = n; history.replaceState(null, '', '#goal-' + n); renderPanel(); const p = document.getElementById('panel'); if (window.innerWidth < 760) p.scrollIntoView({block:'start'}); }
+  function select(n, opts={}) {
+    if (n < 1 || n > 17) return;
+    cur = n;
+    if (opts.updateHash !== false) history.replaceState(null, '', '#goal-' + n);
+    renderRail();
+    renderPanel();
+
+    // Keep the selected goal visible in the left rail.
+    const active = document.querySelector('.goal-btn[data-goal="' + n + '"]');
+    if (active && active.scrollIntoView) {
+      active.scrollIntoView({
+        behavior: opts.instant ? 'auto' : 'smooth',
+        block: 'nearest',
+        inline: 'nearest'
+      });
+    }
+
+    // When arriving from Home with #goal-X, focus the actual evidence panel.
+    if (opts.scrollPanel || window.innerWidth < 760) {
+      const p = document.getElementById('panel');
+      if (p) p.scrollIntoView({
+        behavior: opts.instant ? 'auto' : 'smooth',
+        block: 'start'
+      });
+    }
+  }
+
+  // Deep-link support: Home -> 17-goals.html#goal-X
+  function applyGoalFromHash({scrollPanel=false, instant=false}={}) {
+    const m = location.hash.match(/^#goal-(\d{1,2})$/);
+    if (!m) return;
+    const n = Number(m[1]);
+    if (n >= 1 && n <= 17) {
+      select(n, {updateHash:false, scrollPanel, instant});
+    }
+  }
+
+  window.addEventListener('hashchange', () => {
+    applyGoalFromHash({scrollPanel:true});
+  });
   document.getElementById('lang-en').addEventListener('click', () => { lang='en'; try{localStorage.setItem('sdg-lang','en')}catch(e){} applyLang(); });
   document.getElementById('lang-ar').addEventListener('click', () => { lang='ar'; try{localStorage.setItem('sdg-lang','ar')}catch(e){} applyLang(); });
   applyLang();
+  requestAnimationFrame(() => applyGoalFromHash({scrollPanel:true, instant:true}));
 })();
 </script>
 </body>

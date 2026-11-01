@@ -1612,3 +1612,32 @@ h1,h2,h3,h4{line-height:1.12;margin:0;color:var(--ink);letter-spacing:-.025em}p{
   }
   .goals-viewport::-webkit-scrollbar{display:none}
 }
+
+
+/* v4.4 — 17 Goals deep-link navigation */
+a.goal-timeline-btn{
+  text-decoration:none!important;
+}
+a.goal-timeline-btn:visited{
+  color:#708196;
+}
+a.goal-timeline-btn.is-active,
+a.goal-timeline-btn.is-active:visited{
+  color:#fff;
+}
+
+
+/* v4.5 — goal links must remain clickable */
+.goal-card,
+.goal-timeline-btn{
+  pointer-events:auto!important;
+}
+.goal-card-media,
+.goal-card-copy,
+.goal-card *{
+  pointer-events:none;
+}
+.goal-timeline-btn{
+  position:relative;
+  z-index:4;
+}
