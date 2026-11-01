@@ -327,19 +327,53 @@
     viewport.addEventListener('touchstart',()=>stopAutoplay(),{passive:true});
     viewport.addEventListener('touchend',()=>scheduleAutoplayAfterInteraction(),{passive:true});
 
-    // Trackpad / mouse wheel horizontal browsing.
+    // Trackpad / mouse wheel browsing.
+    // Supports:
+    // 1) two-finger horizontal swipe (deltaX),
+    // 2) two-finger vertical swipe while hovering the goal rail (deltaY),
+    // 3) Shift + wheel.
+    // The page resumes normal vertical scrolling at the carousel boundaries.
+    let wheelRaf=null;
+    let pendingWheel=0;
+
     viewport.addEventListener('wheel',e=>{
-      const delta=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;
-      if(Math.abs(delta)<1) return;
+      const absX=Math.abs(e.deltaX);
+      const absY=Math.abs(e.deltaY);
+
+      let delta;
+      if(e.shiftKey && absY>0){
+        delta=e.deltaY;
+      }else if(absX>=absY*.55 && absX>0){
+        delta=e.deltaX;
+      }else{
+        delta=e.deltaY;
+      }
+
+      if(Math.abs(delta)<.5) return;
 
       const left=viewport.scrollLeft;
       const max=maxScroll();
-      const canMove=(delta>0 && left<max-2)||(delta<0 && left>2);
-      if(!canMove) return;
+      const atStart=left<=1;
+      const atEnd=left>=max-1;
+      const goingBack=delta<0;
+      const goingForward=delta>0;
+
+      if((atStart && goingBack) || (atEnd && goingForward)){
+        return;
+      }
 
       e.preventDefault();
       programmatic=false;
-      viewport.scrollLeft+=delta;
+      pendingWheel+=delta;
+
+      if(!wheelRaf){
+        wheelRaf=requestAnimationFrame(()=>{
+          viewport.scrollLeft+=pendingWheel;
+          pendingWheel=0;
+          wheelRaf=null;
+        });
+      }
+
       scheduleAutoplayAfterInteraction();
     },{passive:false});
 
@@ -351,6 +385,18 @@
         updateUI();
       },110);
     },{passive:true});
+
+    // Keyboard support when the carousel is focused.
+    viewport.setAttribute('tabindex','0');
+    viewport.addEventListener('keydown',e=>{
+      if(e.key==='ArrowRight'){
+        e.preventDefault();
+        scrollToGoal(selected+1);
+      }else if(e.key==='ArrowLeft'){
+        e.preventDefault();
+        scrollToGoal(selected-1);
+      }
+    });
 
     if(pauseBtn){
       pauseBtn.addEventListener('click',()=>{

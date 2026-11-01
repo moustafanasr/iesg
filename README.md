@@ -111,3 +111,11 @@ The full content and interaction from the supplied `sdg-explorer-prototype(1).ht
 - Mouse drag still scrolls horizontally and only suppresses navigation when a real drag occurred.
 - Touch uses native scrolling so taps remain clickable links.
 - Added an extra hash-application pass on the 17 Goals page for reliable deep linking after page render.
+
+
+## v4.6 — Trackpad scrolling
+- Added explicit MacBook/Windows precision-trackpad support to the Home 17 Goals carousel.
+- Two-finger horizontal swipe uses `deltaX`.
+- Two-finger vertical scrolling while hovering the carousel is converted to horizontal motion.
+- At the first/last card, vertical page scrolling is released naturally.
+- Added Shift+wheel and keyboard Left/Right arrow support.

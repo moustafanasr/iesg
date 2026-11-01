@@ -1641,3 +1641,19 @@ a.goal-timeline-btn.is-active:visited{
   position:relative;
   z-index:4;
 }
+
+
+/* =========================================================
+   v4.6 — trackpad / two-finger horizontal SDG scrolling
+   ========================================================= */
+.goals-viewport{
+  overscroll-behavior-x:contain!important;
+  overscroll-behavior-y:auto!important;
+  touch-action:pan-x pan-y!important;
+  scroll-behavior:smooth;
+}
+.goals-viewport:focus-visible{
+  outline:2px solid rgba(8,124,193,.35);
+  outline-offset:5px;
+  border-radius:14px;
+}
