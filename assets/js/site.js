@@ -137,303 +137,6 @@
   });
 
 
-  /* v4.5 — SDG carousel with reliable goal navigation */
-  qsa('[data-goals-carousel]').forEach(carousel=>{
-    const section = carousel.closest('.goals-carousel-section');
-    const viewport = qs('.goals-viewport', carousel);
-    const track = qs('.goals-track', carousel);
-    const cards = qsa('[data-goal-card]', carousel);
-    const timeline = qsa('[data-goal-jump]', section);
-    const currentEl = qs('[data-goals-current]', section);
-    const progressEl = qs('[data-goals-progress]', section);
-    const prevBtns = qsa('[data-goals-prev]', section);
-    const nextBtns = qsa('[data-goals-next]', section);
-    const pauseBtn = qs('[data-goals-pause]', section);
-    if(!viewport || !track || cards.length !== 17) return;
-
-    let selected=0;
-    let timer=null;
-    let firstTimer=null;
-    let paused=false;
-    let inView=false;
-    let userResumeTimer=null;
-    let programmatic=false;
-    let scrollEndTimer=null;
-
-    const clamp=(n,min,max)=>Math.max(min,Math.min(n,max));
-    const maxScroll=()=>Math.max(0,viewport.scrollWidth-viewport.clientWidth);
-
-    const updateUI=()=>{
-      const goal=selected+1;
-      carousel.dataset.currentGoal=String(goal);
-      if(currentEl) currentEl.textContent=String(goal).padStart(2,'0');
-      if(progressEl) progressEl.style.width=`${(goal/17)*100}%`;
-
-      cards.forEach((card,i)=>{
-        const active=i===selected;
-        card.classList.toggle('is-selected',active);
-        if(active) card.setAttribute('aria-current','true');
-        else card.removeAttribute('aria-current');
-      });
-
-      timeline.forEach((item,i)=>{
-        const active=i===selected;
-        item.classList.toggle('is-active',active);
-        item.setAttribute('aria-selected',active?'true':'false');
-      });
-
-      prevBtns.forEach(btn=>btn.disabled=selected===0);
-      nextBtns.forEach(btn=>btn.disabled=selected===cards.length-1);
-    };
-
-    const cardTargetLeft=(i)=>{
-      const card=cards[i];
-      if(!card) return 0;
-      return clamp(card.offsetLeft-track.offsetLeft,0,maxScroll());
-    };
-
-    const scrollToGoal=(i,{behavior='smooth',restart=true}={})=>{
-      selected=clamp(i,0,cards.length-1);
-      updateUI();
-      programmatic=true;
-      viewport.scrollTo({
-        left:cardTargetLeft(selected),
-        behavior:reduced?'auto':behavior
-      });
-      setTimeout(()=>{programmatic=false;},700);
-      if(restart) scheduleAutoplayAfterInteraction();
-    };
-
-    const stopAutoplay=()=>{
-      if(timer){clearInterval(timer);timer=null;}
-      if(firstTimer){clearTimeout(firstTimer);firstTimer=null;}
-    };
-
-    const runInterval=()=>{
-      if(reduced||paused||!inView) return;
-      if(timer) clearInterval(timer);
-      timer=setInterval(()=>{
-        scrollToGoal(selected>=16?0:selected+1,{behavior:'smooth',restart:false});
-      },5200);
-    };
-
-    const startAutoplay=()=>{
-      stopAutoplay();
-      if(reduced||paused||!inView) return;
-      firstTimer=setTimeout(()=>{
-        firstTimer=null;
-        if(reduced||paused||!inView) return;
-        scrollToGoal(selected>=16?0:selected+1,{behavior:'smooth',restart:false});
-        runInterval();
-      },7000);
-    };
-
-    const scheduleAutoplayAfterInteraction=()=>{
-      stopAutoplay();
-      clearTimeout(userResumeTimer);
-      userResumeTimer=setTimeout(()=>{ if(inView&&!paused) runInterval(); },6500);
-    };
-
-    const deriveSelectionFromScroll=()=>{
-      const left=viewport.scrollLeft;
-      const max=maxScroll();
-      if(left<=3) return 0;
-      if(max-left<=3) return 16;
-
-      let best=0, bestDistance=Infinity;
-      cards.forEach((card,i)=>{
-        const cardLeft=card.offsetLeft-track.offsetLeft;
-        const d=Math.abs(cardLeft-left);
-        if(d<bestDistance){bestDistance=d;best=i;}
-      });
-      return best;
-    };
-
-    // Carousel arrows only scroll the preview.
-    prevBtns.forEach(btn=>btn.addEventListener('click',()=>scrollToGoal(selected-1)));
-    nextBtns.forEach(btn=>btn.addEventListener('click',()=>scrollToGoal(selected+1)));
-
-    // 01–17 timeline links navigate directly to the matching goal page.
-    timeline.forEach(item=>{
-      item.addEventListener('click',e=>{
-        const href=item.getAttribute('href');
-        if(!href) return;
-        stopAutoplay();
-        // Explicit navigation avoids any browser/drag edge cases.
-        e.preventDefault();
-        window.location.assign(href);
-      });
-    });
-
-    // Card links: normal click ALWAYS navigates.
-    // We only suppress the click if the mouse actually dragged horizontally.
-    let mouseDragging=false;
-    let dragMoved=false;
-    let startX=0;
-    let startLeft=0;
-
-    viewport.addEventListener('mousedown',e=>{
-      if(e.button!==0) return;
-      mouseDragging=true;
-      dragMoved=false;
-      startX=e.clientX;
-      startLeft=viewport.scrollLeft;
-      viewport.classList.add('is-dragging');
-      stopAutoplay();
-    });
-
-    window.addEventListener('mousemove',e=>{
-      if(!mouseDragging) return;
-      const dx=e.clientX-startX;
-      if(Math.abs(dx)>7) dragMoved=true;
-      if(dragMoved) viewport.scrollLeft=startLeft-dx;
-    });
-
-    window.addEventListener('mouseup',()=>{
-      if(!mouseDragging) return;
-      mouseDragging=false;
-      viewport.classList.remove('is-dragging');
-
-      if(dragMoved){
-        selected=deriveSelectionFromScroll();
-        updateUI();
-        viewport.scrollTo({
-          left:cardTargetLeft(selected),
-          behavior:reduced?'auto':'smooth'
-        });
-        setTimeout(()=>{dragMoved=false;},120);
-      }
-      scheduleAutoplayAfterInteraction();
-    });
-
-    cards.forEach(card=>{
-      card.addEventListener('click',e=>{
-        const href=card.getAttribute('href') || card.dataset.goalLink;
-        if(!href) return;
-
-        if(dragMoved){
-          e.preventDefault();
-          return;
-        }
-
-        stopAutoplay();
-        // Force the link explicitly so it works even inside the draggable viewport.
-        e.preventDefault();
-        window.location.assign(href);
-      });
-    });
-
-    // Touch uses native horizontal scrolling, so taps remain real link taps.
-    viewport.addEventListener('touchstart',()=>stopAutoplay(),{passive:true});
-    viewport.addEventListener('touchend',()=>scheduleAutoplayAfterInteraction(),{passive:true});
-
-    // Trackpad / mouse wheel browsing.
-    // Supports:
-    // 1) two-finger horizontal swipe (deltaX),
-    // 2) two-finger vertical swipe while hovering the goal rail (deltaY),
-    // 3) Shift + wheel.
-    // The page resumes normal vertical scrolling at the carousel boundaries.
-    let wheelRaf=null;
-    let pendingWheel=0;
-
-    viewport.addEventListener('wheel',e=>{
-      const absX=Math.abs(e.deltaX);
-      const absY=Math.abs(e.deltaY);
-
-      let delta;
-      if(e.shiftKey && absY>0){
-        delta=e.deltaY;
-      }else if(absX>=absY*.55 && absX>0){
-        delta=e.deltaX;
-      }else{
-        delta=e.deltaY;
-      }
-
-      if(Math.abs(delta)<.5) return;
-
-      const left=viewport.scrollLeft;
-      const max=maxScroll();
-      const atStart=left<=1;
-      const atEnd=left>=max-1;
-      const goingBack=delta<0;
-      const goingForward=delta>0;
-
-      if((atStart && goingBack) || (atEnd && goingForward)){
-        return;
-      }
-
-      e.preventDefault();
-      programmatic=false;
-      pendingWheel+=delta;
-
-      if(!wheelRaf){
-        wheelRaf=requestAnimationFrame(()=>{
-          viewport.scrollLeft+=pendingWheel;
-          pendingWheel=0;
-          wheelRaf=null;
-        });
-      }
-
-      scheduleAutoplayAfterInteraction();
-    },{passive:false});
-
-    viewport.addEventListener('scroll',()=>{
-      if(programmatic) return;
-      clearTimeout(scrollEndTimer);
-      scrollEndTimer=setTimeout(()=>{
-        selected=deriveSelectionFromScroll();
-        updateUI();
-      },110);
-    },{passive:true});
-
-    // Keyboard support when the carousel is focused.
-    viewport.setAttribute('tabindex','0');
-    viewport.addEventListener('keydown',e=>{
-      if(e.key==='ArrowRight'){
-        e.preventDefault();
-        scrollToGoal(selected+1);
-      }else if(e.key==='ArrowLeft'){
-        e.preventDefault();
-        scrollToGoal(selected-1);
-      }
-    });
-
-    if(pauseBtn){
-      pauseBtn.addEventListener('click',()=>{
-        paused=!paused;
-        pauseBtn.setAttribute('aria-pressed',paused?'true':'false');
-        pauseBtn.textContent=paused?'▶':'Ⅱ';
-        if(paused) stopAutoplay(); else startAutoplay();
-      });
-    }
-
-    if('IntersectionObserver' in window){
-      const io=new IntersectionObserver(entries=>{
-        entries.forEach(entry=>{
-          inView=entry.isIntersecting && entry.intersectionRatio>=.25;
-          if(inView) startAutoplay(); else stopAutoplay();
-        });
-      },{threshold:[0,.25,.5]});
-      io.observe(carousel);
-    }else{
-      inView=true;
-      startAutoplay();
-    }
-
-    let resizeTimer=null;
-    addEventListener('resize',()=>{
-      clearTimeout(resizeTimer);
-      resizeTimer=setTimeout(()=>{
-        viewport.scrollTo({left:cardTargetLeft(selected),behavior:'auto'});
-        updateUI();
-      },120);
-    });
-
-    selected=0;
-    viewport.scrollLeft=0;
-    updateUI();
-  });
-
   /* Horizontal sliders */
   qsa('[data-slider]').forEach(shell=>{
     const track=qs('[data-track]',shell);
@@ -605,4 +308,90 @@
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initMotion,{once:true});
   else initMotion();
+
+
+  /* SWIPER REBUILD — 17 GLOBAL GOALS (section only) */
+  qsa('[data-sdg-swiper]').forEach(swiperEl=>{
+    if(typeof Swiper==='undefined') return;
+    const section=swiperEl.closest('.sdg-swiper-section');
+    const indexBtns=qsa('[data-sdg-index]',section);
+    const current=qs('[data-sdg-current]',section);
+    const pause=qs('[data-sdg-pause]',section);
+
+    const swiper=new Swiper(swiperEl,{
+      slidesPerView:1.25,
+      spaceBetween:14,
+      speed:620,
+      grabCursor:true,
+      watchSlidesProgress:true,
+      observer:true,
+      observeParents:true,
+      rewind:true,
+      freeMode:{enabled:true,sticky:true,momentum:true,momentumRatio:.72},
+      mousewheel:{
+        enabled:true,
+        forceToAxis:false,
+        releaseOnEdges:true,
+        sensitivity:.72,
+        thresholdDelta:2,
+        thresholdTime:20
+      },
+      keyboard:{enabled:true,onlyInViewport:true},
+      navigation:{
+        nextEl:section.querySelector('.sdg-swiper-next'),
+        prevEl:section.querySelector('.sdg-swiper-prev')
+      },
+      pagination:{
+        el:section.querySelector('.sdg-swiper-progress'),
+        type:'progressbar'
+      },
+      autoplay:reduced?false:{
+        delay:4200,
+        disableOnInteraction:false,
+        pauseOnMouseEnter:true
+      },
+      breakpoints:{
+        520:{slidesPerView:2.2,spaceBetween:14},
+        760:{slidesPerView:3.25,spaceBetween:16},
+        1024:{slidesPerView:4.35,spaceBetween:18},
+        1280:{slidesPerView:5.2,spaceBetween:18}
+      },
+      on:{
+        init(sw){sync(sw.realIndex)},
+        slideChange(sw){sync(sw.realIndex)},
+        activeIndexChange(sw){sync(sw.realIndex)}
+      }
+    });
+
+    function sync(i){
+      const n=Math.max(0,Math.min(i,16));
+      if(current) current.textContent=String(n+1).padStart(2,'0');
+      indexBtns.forEach((b,j)=>b.classList.toggle('is-active',j===n));
+      const active=indexBtns[n];
+      if(active && window.innerWidth<760){
+        active.scrollIntoView({behavior:reduced?'auto':'smooth',block:'nearest',inline:'center'});
+      }
+    }
+
+    indexBtns.forEach(btn=>btn.addEventListener('click',()=>{
+      const i=Number(btn.dataset.sdgIndex||0);
+      swiper.slideTo(i,560);
+    }));
+
+    if(pause && swiper.autoplay){
+      pause.addEventListener('click',()=>{
+        const stopped=pause.getAttribute('aria-pressed')==='true';
+        if(stopped){
+          swiper.autoplay.start();
+          pause.setAttribute('aria-pressed','false');
+          pause.textContent='Ⅱ';
+        }else{
+          swiper.autoplay.stop();
+          pause.setAttribute('aria-pressed','true');
+          pause.textContent='▶';
+        }
+      });
+    }
+  });
+
 })();
