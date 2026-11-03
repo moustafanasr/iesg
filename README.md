@@ -127,3 +127,10 @@ The full content and interaction from the supplied `sdg-explorer-prototype(1).ht
 - Changed the SDG Swiper media from `object-fit: cover` to `object-fit: contain`.
 - Removed duplicate media border/shadow so the artwork itself defines the card.
 - Preserved full image content without clipping on desktop, tablet or mobile.
+
+
+## v5.2 — User supplied SDG images
+- Replaced Goal 01–10 artwork with the images supplied in `SDGs.rar`.
+- Corrected the archive's non-sequential file order by matching each image to its actual SDG content.
+- Kept Goals 11–17, Swiper behavior, links, and all other theme content unchanged.
+- Normalized Goal 01–10 assets to 1200×1200 WebP with full-image `contain` rendering.

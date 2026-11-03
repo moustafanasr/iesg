@@ -1962,3 +1962,20 @@ a.goal-timeline-btn.is-active:visited{
     border-radius:18px!important;
   }
 }
+
+
+/* =========================================================
+   v5.2 — user supplied SDG artwork
+   ========================================================= */
+.sdg-goals-swiper .sdg-swiper-media{
+  aspect-ratio:1/1!important;
+  overflow:hidden!important;
+  background:transparent!important;
+}
+.sdg-goals-swiper .sdg-swiper-media img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  object-position:center!important;
+  display:block!important;
+}
