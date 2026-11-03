@@ -111,3 +111,19 @@ The full content and interaction from the supplied `sdg-explorer-prototype(1).ht
 - Mouse drag still scrolls horizontally and only suppresses navigation when a real drag occurred.
 - Touch uses native scrolling so taps remain clickable links.
 - Added an extra hash-application pass on the 17 Goals page for reliable deep linking after page render.
+
+
+## Final Swiper theme pass
+- Replaced SDG Goals 01–10 with the newly generated visual set.
+- Converted Home Services, Partners, Collaborations and Knowledge/Reports cards to Swiper 11.
+- All Swipers support mouse drag, trackpad/mouse wheel, touch swipe, arrows, keyboard and progress feedback.
+- Partners uses loop + autoplay and pauses on hover/interaction.
+- Normalized visible company naming from `i-ESG` to `iESG`.
+
+
+## v5.1 — Final SDG image correction
+- Replaced Goal images 01–10 with the newly generated final square artwork.
+- Normalized Goal images to 1200×1200 WebP.
+- Changed the SDG Swiper media from `object-fit: cover` to `object-fit: contain`.
+- Removed duplicate media border/shadow so the artwork itself defines the card.
+- Preserved full image content without clipping on desktop, tablet or mobile.

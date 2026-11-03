@@ -394,4 +394,62 @@
     }
   });
 
+
+
+  /* FINAL SWIPER SYSTEM — all swipeable Home sections */
+  qsa('[data-iesg-swiper]').forEach(swiperEl=>{
+    if(typeof Swiper==='undefined') return;
+    const type=swiperEl.dataset.iesgSwiper||'default';
+    const shell=swiperEl.closest('.iesg-swiper-shell');
+    const navNext=shell&&shell.querySelector('.iesg-swiper-next');
+    const navPrev=shell&&shell.querySelector('.iesg-swiper-prev');
+    const pagination=shell&&shell.querySelector('.iesg-swiper-pagination');
+
+    const base={
+      speed:650,
+      grabCursor:true,
+      simulateTouch:true,
+      allowTouchMove:true,
+      touchStartPreventDefault:false,
+      touchMoveStopPropagation:false,
+      watchSlidesProgress:true,
+      observer:true,
+      observeParents:true,
+      keyboard:{enabled:true,onlyInViewport:true},
+      navigation:{nextEl:navNext,prevEl:navPrev},
+      pagination:{el:pagination,type:'progressbar'},
+      mousewheel:{
+        enabled:true,
+        forceToAxis:false,
+        releaseOnEdges:true,
+        sensitivity:.65,
+        thresholdDelta:3,
+        thresholdTime:18
+      },
+      freeMode:{enabled:true,momentum:true,momentumRatio:.72,sticky:false}
+    };
+
+    const options={...base};
+    if(type==='services'){
+      Object.assign(options,{slidesPerView:1.12,spaceBetween:15,breakpoints:{600:{slidesPerView:1.6},760:{slidesPerView:2.15,spaceBetween:17},1080:{slidesPerView:3.05,spaceBetween:20}}});
+    }else if(type==='partners'){
+      Object.assign(options,{slidesPerView:'auto',spaceBetween:14,loop:true,freeMode:{enabled:true,momentum:true,momentumRatio:.8,sticky:false},autoplay:reduced?false:{delay:1800,disableOnInteraction:false,pauseOnMouseEnter:true}});
+    }else if(type==='collaborations'){
+      Object.assign(options,{slidesPerView:1.08,spaceBetween:15,breakpoints:{680:{slidesPerView:1.7},900:{slidesPerView:2.2},1180:{slidesPerView:3,spaceBetween:20}}});
+    }else if(type==='insights'){
+      Object.assign(options,{slidesPerView:1.04,spaceBetween:16,breakpoints:{820:{slidesPerView:2,spaceBetween:22}}});
+    }else if(type==='partner-page'){
+      Object.assign(options,{slidesPerView:2.1,spaceBetween:14,breakpoints:{600:{slidesPerView:3.2},840:{slidesPerView:4.2},1100:{slidesPerView:5.2}},autoplay:reduced?false:{delay:1900,disableOnInteraction:false,pauseOnMouseEnter:true}});
+    }else if(type==='insight-page'){
+      Object.assign(options,{slidesPerView:1.05,spaceBetween:16,breakpoints:{680:{slidesPerView:1.5},960:{slidesPerView:2.15},1250:{slidesPerView:3.05}}});
+    }else if(type==='page-cards'){
+      Object.assign(options,{slidesPerView:1.06,spaceBetween:16,breakpoints:{680:{slidesPerView:1.6},900:{slidesPerView:2.2},1180:{slidesPerView:3,spaceBetween:20}}});
+    }
+
+    const sw=new Swiper(swiperEl,options);
+    // Pause autoplay while a user actively manipulates a trackpad/mouse/touch.
+    swiperEl.addEventListener('pointerdown',()=>{ if(sw.autoplay) sw.autoplay.stop(); },{passive:true});
+    swiperEl.addEventListener('pointerup',()=>{ if(sw.autoplay) setTimeout(()=>sw.autoplay.start(),1200); },{passive:true});
+  });
+
 })();

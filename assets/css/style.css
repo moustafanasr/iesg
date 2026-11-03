@@ -1829,3 +1829,136 @@ a.goal-timeline-btn.is-active:visited{
 @media(prefers-reduced-motion:reduce){
   .sdg-swiper-card,.sdg-swiper-media img,.sdg-index-btn,.sdg-swiper-nav{transition:none!important}
 }
+
+
+/* =========================================================
+   FINAL SWIPER SYSTEM — services, goals, partners,
+   collaborations and insight cards
+   ========================================================= */
+.iesg-swiper-shell{position:relative;min-width:0}
+.iesg-swiper{overflow:hidden;padding:6px 3px 10px!important}
+.iesg-swiper .swiper-wrapper{align-items:stretch}
+.iesg-swiper .swiper-slide{height:auto;display:flex;min-width:0}
+.iesg-swiper .swiper-slide>*{width:100%;height:100%}
+.iesg-swiper-controls{
+  display:grid;grid-template-columns:42px minmax(120px,1fr) 42px;
+  gap:14px;align-items:center;margin-top:20px
+}
+.iesg-swiper-nav{
+  width:42px;height:42px;border-radius:50%;border:1px solid #d9e4e2;
+  display:grid;place-items:center;background:#fff;color:#102237;
+  font:inherit;font-size:1.05rem;cursor:pointer;
+  box-shadow:0 7px 20px rgba(14,39,52,.06);transition:.22s ease
+}
+.iesg-swiper-nav:hover{transform:translateY(-2px);border-color:#74bdc8;color:#087ea7}
+.iesg-swiper-nav.swiper-button-disabled{opacity:.32;cursor:default;transform:none}
+.iesg-swiper-pagination{position:relative!important;inset:auto!important;height:3px!important;border-radius:99px;background:#dfe8e8;overflow:hidden}
+.iesg-swiper-pagination .swiper-pagination-progressbar-fill{background:linear-gradient(90deg,#3c984c,#22a8c3)!important;border-radius:99px}
+
+/* Services */
+.services-swiper .service-card{display:flex;flex-direction:column;margin:0!important;min-width:0!important;height:100%!important}
+.services-swiper .service-card-body{display:flex;flex-direction:column;flex:1}
+.services-swiper .service-card-body>a{margin-top:auto}
+
+/* Partners */
+.partners-home-section{overflow:hidden}
+.partners-swiper{padding-block:8px 14px!important}
+.partners-swiper .swiper-slide{width:auto}
+.partner-swiper-card{
+  width:190px!important;min-height:116px!important;display:flex!important;
+  align-items:center!important;justify-content:center!important;
+  padding:17px 20px!important;border:1px solid #dfe7e4!important;
+  border-radius:20px!important;background:#fff!important;
+  box-shadow:0 7px 22px rgba(15,36,49,.035)!important;
+  transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease!important
+}
+.partner-swiper-card:hover{transform:translateY(-5px)!important;border-color:#bdd5ca!important;box-shadow:0 17px 38px rgba(15,36,49,.10)!important}
+.partner-swiper-card img{max-width:148px!important;max-height:66px!important;width:auto!important;height:auto!important;object-fit:contain!important}
+
+/* Collaborations */
+.collaborations-swiper .swiper-slide{min-height:350px}
+.collab-swiper-card{position:relative!important;overflow:hidden!important;border-radius:26px!important;min-height:350px!important}
+.collab-swiper-card img{position:absolute!important;inset:0;width:100%!important;height:100%!important;object-fit:cover!important;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.collab-swiper-card:hover img{transform:scale(1.035)}
+.collab-swiper-card:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 38%,rgba(4,17,26,.74));z-index:1;pointer-events:none}
+.collab-swiper-card .collab-overlay{position:absolute!important;left:0;right:0;bottom:0;z-index:2;padding:25px!important}
+.collab-swiper-card .collab-overlay h3,.collab-swiper-card .collab-overlay p{color:#fff!important}
+
+/* Knowledge / Reports */
+.insights-swiper .insight-work-card{margin:0!important;height:100%!important}
+
+/* Swiper cursor and interaction affordance */
+.iesg-swiper,.sdg-goals-swiper{cursor:grab}
+.iesg-swiper:active,.sdg-goals-swiper:active{cursor:grabbing}
+.iesg-swiper img,.sdg-goals-swiper img{-webkit-user-drag:none;user-select:none}
+
+@media(max-width:760px){
+  .iesg-swiper-controls{grid-template-columns:38px 1fr 38px;gap:10px;margin-top:15px}
+  .iesg-swiper-nav{width:38px;height:38px}
+  .partner-swiper-card{width:158px!important;min-height:100px!important;padding:14px 16px!important}
+  .partner-swiper-card img{max-width:124px!important;max-height:56px!important}
+  .collaborations-swiper .swiper-slide,.collab-swiper-card{min-height:285px!important}
+}
+
+
+/* Final theme: repeated card/logo sections across inner pages use Swiper */
+.page-swiper-shell{margin-top:22px;min-width:0}
+.page-swiper .swiper-slide{height:auto}
+.page-swiper .swiper-slide>.card,
+.page-swiper .swiper-slide>.service-card,
+.page-swiper .swiper-slide>.sector-card,
+.page-swiper .swiper-slide>.partner-card,
+.page-swiper .swiper-slide>.linkedin-insight-card,
+.page-swiper .swiper-slide>a,
+.page-swiper .swiper-slide>article{height:100%!important;width:100%!important;margin:0!important}
+.partner-page-swiper .swiper-slide{display:flex;align-items:stretch}
+.partner-page-swiper .swiper-slide>*{display:flex!important;align-items:center;justify-content:center;min-height:128px}
+.insight-page-swiper .swiper-slide{height:auto}
+
+
+/* =========================================================
+   v5.1 — final SDG image fit fix
+   Keep each Goal artwork fully visible, square and consistent.
+   ========================================================= */
+.sdg-swiper-media{
+  aspect-ratio:1 / 1!important;
+  width:100%!important;
+  height:auto!important;
+  padding:0!important;
+  overflow:hidden!important;
+  border-radius:22px!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+.sdg-swiper-media img{
+  width:100%!important;
+  height:100%!important;
+  display:block!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  border-radius:22px!important;
+  transform:none!important;
+}
+.sdg-swiper-card:hover .sdg-swiper-media img{
+  transform:none!important;
+}
+.sdg-swiper-card:hover .sdg-swiper-media{
+  box-shadow:none!important;
+}
+.sdg-goals-swiper .swiper-slide-active .sdg-swiper-media{
+  outline:3px solid color-mix(in srgb,var(--goal-color) 24%,transparent)!important;
+  outline-offset:4px!important;
+}
+.sdg-goals-swiper .swiper-slide{
+  overflow:visible!important;
+}
+.sdg-swiper-card{
+  padding:4px!important;
+}
+@media(max-width:700px){
+  .sdg-swiper-media,
+  .sdg-swiper-media img{
+    border-radius:18px!important;
+  }
+}
